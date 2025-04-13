@@ -2,6 +2,52 @@
 
 clear  # ✅ 실행 시 터미널 화면 정리
 
+# 📍 구분선
+divider="────────────────────────────────────────────"
+
+# 🛠 Git 설정 자동화
+echo ""
+echo -e "${CYAN}🛠 Git 기본 설정을 점검하고 자동으로 적용합니다...${NC}"
+
+# 1. 줄바꿈 설정
+autocrlf_setting=$(git config --global core.autocrlf)
+if [[ "$autocrlf_setting" != "input" ]]; then
+    echo -e "${YELLOW}🔧 core.autocrlf 설정이 '$autocrlf_setting' → input으로 변경됩니다${NC}"
+    git config --global core.autocrlf input
+else
+    echo -e "${GREEN}✅ 줄바꿈 설정은 이미 적절합니다 (input)${NC}"
+fi
+
+# 2. 한글 파일명 설정
+quotepath_setting=$(git config --global core.quotepath)
+if [[ "$quotepath_setting" != "false" ]]; then
+    echo -e "${YELLOW}🔧 core.quotepath 설정이 '$quotepath_setting' → false로 변경됩니다${NC}"
+    git config --global core.quotepath false
+else
+    echo -e "${GREEN}✅ 한글 파일명 설정도 OK (false)${NC}"
+fi
+
+# 3. 사용자 정보 설정
+user_name=$(git config --global user.name)
+user_email=$(git config --global user.email)
+
+if [[ -z "$user_name" || -z "$user_email" ]]; then
+    echo -e "${RED}⚠️ Git 사용자 정보가 설정되어 있지 않아요.${NC}"
+    read -p "👤 이름을 입력하세요: " input_name
+    read -p "📧 이메일을 입력하세요: " input_email
+    git config --global user.name "$input_name"
+    git config --global user.email "$input_email"
+    echo -e "${GREEN}✅ 사용자 정보가 설정되었습니다: $input_name <$input_email>${NC}"
+else
+    echo -e "${GREEN}✅ 사용자 정보: $user_name <$user_email>${NC}"
+fi
+
+echo "$divider"
+echo -e "${CYAN}🛠 Git 기본 설정이 완료되었습니다!${NC}"
+
+clear
+
+# 📦 Git 자동 커밋 & 푸시 스크립트
 # 🎨 색상 정의
 RED='\033[1;31m'
 GREEN='\033[1;32m'
@@ -33,20 +79,6 @@ show_solution() {
         echo "$line"
     done
 }
-
-# 📍 구분선
-divider="────────────────────────────────────────────"
-
-# 🛠 Git 설정 자동화 스크립트 실행
-if [[ -f "./fix_git_config.sh" ]]; then
-    echo -e "${YELLOW}⚙️ Git 설정 스크립트를 실행합니다...${NC}"
-    ./fix_git_config.sh
-    echo -e "${GREEN}✅ Git 설정 완료!${NC}"
-    echo "$divider"
-else
-    echo -e "${RED}⚠️ fix_git_config.sh 파일이 없습니다. Git 설정을 수동으로 확인하세요.${NC}"
-    echo "$divider"
-fi
 
 # ✨ 시작 안내
 print_msg "$CYAN" "✨ Git 자동 커밋 & 푸시 시작합니다 ✨"
