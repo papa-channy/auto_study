@@ -1,6 +1,8 @@
-# 📁 scripts/notebook_generator.py
+# 📁 scripts/notebook_generator.py (🎯 맞춤형 문제 자동 노트북 생성기)
 import os
 import nbformat
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # 루트 경로 등록
 from nbformat.v4 import new_notebook, new_markdown_cell, new_code_cell
 from datetime import datetime
 from tools.paths import NEW_QUESTIONS_PATH, NOTEBOOKS_DIR, ACTIVE_STUDY_RANGE_PATH, DIFFICULTY_MAP_PATH
@@ -21,7 +23,6 @@ LIBRARY_IMPORTS = {
 }
 
 # 📥 설정 파일 로딩 함수
-
 def load_list(path):
     with open(path, "r", encoding="utf-8") as f:
         return [line.strip() for line in f if line.strip() and not line.startswith("#")]
@@ -35,10 +36,13 @@ def load_difficulty_map():
                 difficulty_map[tool.strip()] = [lvl.strip() for lvl in levels.split(",")]
     return difficulty_map
 
-# 📄 문제 불러오기
+# 📄 문제 불러오기 (5개 요소 필터 + 한글 포함 + 번호 시작)
 def load_questions():
     with open(NEW_QUESTIONS_PATH, "r", encoding="utf-8") as f:
-        return [line.strip() for line in f if line.strip() and "|" in line]
+        return [
+            line.strip() for line in f
+            if line.count("|") >= 4 and line.strip()[0].isdigit() and any("가" <= ch <= "힣" for ch in line)
+        ]
 
 # 📓 노트북 자동 생성 함수
 def generate_notebooks():
@@ -57,9 +61,10 @@ def generate_notebooks():
         parts = q.split("|")
         if len(parts) != 5:
             continue
-        tool_tag = parts[3].split("/")[0].strip().lower()
+        번호, level, dataset, category, question = [p.strip() for p in parts]
+        tool_tag = category.split("/")[0].strip().lower()
         if tool_tag in by_tool:
-            by_tool[tool_tag].append(q)
+            by_tool[tool_tag].append((번호, level, dataset, category, question))
 
     # 📓 도구별 ipynb 생성
     for tool in tools:
@@ -72,10 +77,9 @@ def generate_notebooks():
             cells.append(new_code_cell(lib_code))
 
         # 🔢 문제별 셀 구성
-        for idx, line in enumerate(by_tool.get(tool, []), start=1):
-            _, level, dataset, _, question = [p.strip() for p in line.split("|", 4)]
-            markdown = f"## {idx}. {level}\n{question}"
-            code = f"# {dataset} 데이터셋 로딩 예시\ndf = sns.load_dataset(\"{dataset}\")\ndf.head()"
+        for 번호, level, dataset, category, question in by_tool.get(tool, []):
+            markdown = f"### 문제 {번호} ({level})\n📂 카테고리: {category}\n\n{question}"
+            code = f"# {dataset} 데이터셋 로딩 예시\nimport seaborn as sns\ndf = sns.load_dataset(\"{dataset}\")\ndf.head()"
             cells.append(new_markdown_cell(markdown))
             cells.append(new_code_cell(code))
             cells.append(new_markdown_cell("---"))  # 셀 구분선

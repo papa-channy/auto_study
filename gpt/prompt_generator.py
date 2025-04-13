@@ -1,55 +1,48 @@
-# 📁 scripts/prompt_generator.py
-import os
-from tools.paths import GPT_DIR  # 📂 프롬프트 및 예시 파일 경로가 저장된 디렉토리
+# 📁 gpt/prompt_generator.py (✅ 프롬프트 한글화 + 양식 엄격화 버전)
+import sys, os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# 📄 예시 파일 경로 매핑 (도구 약어 → 최근 예시 파일 경로)
+from tools.paths import GPT_DIR
+
+# 📄 예시 파일 경로 매핑
 EXAMPLE_PATHS = {
     "pds": os.path.join(GPT_DIR, "recent_examples_pandas.txt"),
     "sql": os.path.join(GPT_DIR, "recent_examples_sql.txt"),
     "viz": os.path.join(GPT_DIR, "recent_examples_viz.txt"),
 }
 
-# 📄 프롬프트 파일 경로 매핑 (도구 약어 → 출력 프롬프트 파일 경로)
+# 📄 프롬프트 파일 저장 경로
 OUTPUT_PATHS = {
     "pds": os.path.join(GPT_DIR, "prompt_pandas.txt"),
     "sql": os.path.join(GPT_DIR, "prompt_sql.txt"),
     "viz": os.path.join(GPT_DIR, "prompt_viz.txt"),
 }
 
-# 📝 프롬프트 헤더 템플릿 (도구별 고정 프롬프트 서두)
+# 📝 프롬프트 헤더 (한글 버전 + 형식 강조)
 HEADER = {
-    "pds": "아래 조건에 맞는 Pandas 문제를 생성해줘.\n\n🟡 요청 조건:\n- 데이터셋: {dataset}  ← 예: tips, titanic, iris\n- 문제 개수: 3문제\n- 난이도는 중 → 상 → 최상 순으로 구성\n\n🟢 출력 형식:\n번호|난이도|dataset|분류|문제 내용\n\n📝 출력 예시:",
-    "sql": "아래 조건에 맞는 SQL 문제를 생성해줘.\n\n🟡 요청 조건:\n- 데이터셋: {dataset} ← 예: tips, titanic, iris\n- 문제 개수: 3문제\n- 난이도는 하 → 중하 → 중상 순으로 구성\n\n🟢 출력 형식:\n번호|난이도|dataset|분류|문제 내용\n\n📝 출력 예시:",
-    "viz": "아래 조건에 맞는 시각화 문제를 생성해줘.\n\n🟡 요청 조건:\n- 데이터셋: {dataset} ← 예: titanic, tips, iris\n- 문제 개수: 3문제\n- 난이도는 하 → 중하 → 중상 순으로 구성\n\n🟢 출력 형식:\n번호|난이도|dataset|분류|문제 내용\n\n📝 출력 예시:",
+    "pds": "아래 조건에 따라 Pandas 문제를 생성해 주세요.\n\n🟡 조건:\n- 데이터셋: {dataset} (예: tips, titanic 등)\n- 문제 수: 3문제\n- 난이도: 중 → 상 → 최상\n- 문제는 반드시 한국어로 작성하세요.\n\n❗ 출력 형식은 아래 양식을 정확히 따르세요 (다른 문장/설명/힌트 추가 금지):\n1|중|tips|데이터 전처리|결측값을 제거하라\n2|상|tips|요약 통계|성별별 평균 팁 금액을 구하라\n3|최상|tips|시각화|요일별 생존율을 그래프로 나타내라",
+
+    "sql": "아래 조건에 따라 SQL 문제를 생성해 주세요.\n\n🟡 조건:\n- 데이터셋: {dataset} (예: tips, titanic 등)\n- 문제 수: 3문제\n- 난이도: 하 → 중하 → 중상\n- 문제는 반드시 한국어로 작성하세요.\n\n❗ 출력 형식은 아래 양식을 정확히 따르세요 (다른 문장/설명/힌트 추가 금지):\n1|하|tips|Filtering|팁이 10달러 이상인 행을 찾으세요.\n2|중하|tips|Aggregation|요일별 총 지출 금액을 구하세요.\n3|중상|tips|Join|음료 정보와 함께 고객 정보를 조인하여 출력하세요.",
+
+    "viz": "아래 조건에 따라 시각화 문제를 생성해 주세요.\n\n🟡 조건:\n- 데이터셋: {dataset} (예: tips, titanic 등)\n- 문제 수: 3문제\n- 난이도: 하 → 중하 → 중상\n- 문제는 반드시 한국어로 작성하세요.\n\n❗ 출력 형식은 아래 양식을 정확히 따르세요 (다른 문장/설명/힌트 추가 금지):\n1|하|tips|기초 시각화|요일별 팁 금액 분포를 막대그래프로 나타내라\n2|중하|tips|비교 분석|식사 인원수에 따른 팁 금액을 박스플롯으로 비교하라\n3|중상|tips|시계열|시간대별 평균 팁 금액을 선그래프로 나타내라",
 }
 
-# 🛠️ 프롬프트 파일 자동 생성 함수
+# 📌 프롬프트 생성 함수
 def generate_prompt(tool):
-    tool = tool.lower()  # ✅ 도구명 소문자로 통일
-    example_path = EXAMPLE_PATHS[tool]  # 📂 예시 파일 경로
-    output_path = OUTPUT_PATHS[tool]    # 📁 출력 프롬프트 파일 경로
-    header = HEADER[tool]               # 📝 프롬프트 서두 내용
+    tool = tool.lower()
+    example_path = EXAMPLE_PATHS[tool]
+    output_path = OUTPUT_PATHS[tool]
+    header = HEADER[tool]
 
-    # 📥 예시 불러오기
     with open(example_path, "r", encoding="utf-8") as f:
         examples = f.read().strip()
 
-    # 💾 프롬프트 파일 생성 및 저장
     with open(output_path, "w", encoding="utf-8") as f:
-        f.write(header + "\n" + examples + "\n\n❗주의사항:\n")
-        if tool == "pds":
-            f.write("- 문제 내용에 데이터셋 이름은 언급하지 마세요.\n")
-            f.write("- 실제 분석에서 자주 쓰이는 문제로 구성해 주세요.\n")
-        elif tool == "sql":
-            f.write("- SQL 키워드는 직접 넣지 말고 설명 중심으로 구성해 주세요.\n")
-        elif tool == "viz":
-            f.write("- 시각화 도구 이름은 문제에 포함하지 마세요.\n")
-            f.write("- 시각적으로 비교하거나 인사이트를 도출할 수 있는 주제로 구성해 주세요.\n")
+        f.write(header + "\n\n📝 예시:\n" + examples)
 
-    print(f"✅ {tool} 프롬프트 생성 완료 → {output_path}")  # 🎉 완료 메시지 출력
+    print(f"✅ {tool} 프롬프트 생성 완료 → {output_path}")
 
-# ▶️ 테스트 실행용: 모든 도구에 대해 생성 함수 실행
+# ▶️ 진입점
 if __name__ == "__main__":
-    tools = ["pds", "sql", "viz"]
-    for tool in tools:
+    for tool in ["pds", "sql", "viz"]:
         generate_prompt(tool)

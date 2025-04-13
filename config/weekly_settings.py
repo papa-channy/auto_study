@@ -16,7 +16,7 @@
 # - NUM_BATCHES_PER_WEEK: 주당 GPT 호출 횟수
 # - START_DATE: 기준 주차 계산용 시작일
 
-ACTIVE_STUDY_RANGES = ["pds", "sql", "viz"]
+ACTIVE_STUDY_RANGES = ["pds"]
 
 DATASETS = [
     "titanic", "tips", "iris", "penguins",
@@ -25,11 +25,10 @@ DATASETS = [
 
 DIFFICULTY_MAP = {
     "pds": ["중", "상", "최상"],
-    "sql": ["하", "중하", "중상"],
-    "viz": ["하", "중하", "중상"]
-}
+    
 
-TOTAL_WEEKLY_PROBLEMS = 20
-PROBLEMS_PER_BATCH = 4
-NUM_BATCHES_PER_WEEK = 2
-START_DATE = "2024-01-01"
+    # TOTAL_WEEKLY_PROBLEMS = 9
+    # PROBLEMS_PER_BATCH = 3
+    # NUM_BATCHES_PER_WEEK = 1
+    # START_DATE = "2024-01-01"    오류 수정하기기
+}

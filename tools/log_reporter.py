@@ -1,5 +1,7 @@
 # 📁 tools/log_reporter.py
 import os
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # 루트 경로 추가
 from datetime import datetime
 from tools.paths import ARCHIVED_QUESTIONS_PATH, NOTEBOOKS_DIR, ACTIVE_STUDY_RANGE_PATH
 

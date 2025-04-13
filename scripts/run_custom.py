@@ -1,6 +1,7 @@
-# 📁 scripts/run_custom.py
+# 📁 scripts/run_custom.py (✅ 설정 기반 도구 + 랜덤 데이터셋 기반 문제 생성)
 import sys
 import os
+import random
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # ✅ 루트 경로 강제 포함
 
 from gpt.generator import generate_questions, save_questions
@@ -36,18 +37,21 @@ def run():
     datasets = load_dataset_list()      # ✅ 사용할 데이터셋 리스트
     difficulty_map = load_difficulty_map()  # ✅ 도구별 난이도 매핑
 
+    # 🎲 무작위 데이터셋 1개 선택
+    selected_dataset = random.choice(datasets)
+    print(f"\n🎯 선택된 데이터셋: {selected_dataset}")
+
     for tool in tools:
         if tool not in difficulty_map:
             print(f"⚠️ 난이도 설정이 없는 도구: {tool} → 건너뜀")
             continue
 
-        for dataset in datasets:
-            try:
-                print(f"\n📘 생성 중: {tool} × {dataset}")
-                result = generate_questions(dataset, tool)  # 🧠 GPT 문제 생성
-                save_questions(result)                      # 💾 결과 저장
-            except Exception as e:
-                print(f"❌ 오류 발생: {tool} × {dataset} → {e}")
+        try:
+            print(f"\n📘 생성 중: {tool} × {selected_dataset}")
+            result = generate_questions(selected_dataset, tool)  # 🧠 GPT 문제 생성
+            save_questions(result)                               # 💾 결과 저장
+        except Exception as e:
+            print(f"❌ 오류 발생: {tool} × {selected_dataset} → {e}")
 
     print("\n✅ 모든 문제 생성 완료!")
 

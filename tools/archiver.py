@@ -1,7 +1,10 @@
 # 📁 tools/archiver.py
 from tools.paths import NEW_QUESTIONS_PATH, ARCHIVED_QUESTIONS_PATH
 import os
+import sys
 
+# 🔧 PYTHONPATH 문제 해결을 위한 경로 강제 삽입
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # 📦 문제 아카이브 처리 함수
 def archive_questions():
     """new_questions.txt 내용을 archived_questions.txt에 누적 저장하고 초기화"""
